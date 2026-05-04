@@ -1,6 +1,6 @@
 # LLM Wiki — Schema 与工作流约定
 
-这是一个 **Karpathy 风格的个人 wiki**：所有页面由 Claude Code 维护，无需 API key，也无需手动跑 Python 脚本——直接在 Claude Code 里打开本仓库，用自然语言对话即可。
+这是一个 **Karpathy 风格的个人 wiki**：所有页面由 Codex 维护。直接在 Codex 里打开本仓库，用自然语言对话即可；当用户说“摄入 / 查询 / 健康检查 / lint / 重建图谱”时，按本文工作流直接执行。
 
 > 灵感来源：
 > - 理论：Karpathy [LLM Wiki gist](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
@@ -10,7 +10,9 @@
 
 ---
 
-## Slash 命令（Claude Code 内）
+## Codex 命令约定
+
+Codex 环境可能没有真正的 slash command UI；如果用户输入下列 slash 命令，就把它们视为自然语言触发器并执行对应工作流。用户也可以直接用中文描述同一件事。
 
 | 命令 | 用法示例 |
 |---|---|
@@ -26,7 +28,16 @@
 - *"检查 wiki 有没有孤立页或矛盾"*
 - *"重建图谱，看看 RAG 节点连了哪些"*
 
-Claude Code 会自动加载本文件，按下面的工作流执行。
+Codex 会读取本文件作为仓库级操作约定，按下面的工作流执行。
+
+### Codex 执行偏好
+
+- 用户提出明确文件变更时，直接编辑仓库文件；不要只给教程。
+- 读取文件优先用 Codex 可用的文件/终端工具；搜索文件优先用 `rg`，不可用时用 PowerShell 原生命令兜底。
+- 写文件时遵守当前 Codex 约束：手工编辑优先用 `apply_patch`；不要修改 `raw/` 下已有源文件，除非用户明确要求。
+- 运行 Python 工具时在仓库根目录执行，例如 `python tools/health.py`。
+- Git 操作前先看 `git status --short --branch`；不要提交被 `.gitignore` 忽略的本地状态文件或生成图谱产物。
+- 所有面向用户的 wiki 页面、log 条目和回答默认中文。
 
 ---
 
@@ -41,7 +52,7 @@ raw/                 # 不可变源文档 —— 永远不要修改
   transcripts/       # YouTube / 播客转录
   notes/             # 自己的草稿与零散笔记
 
-wiki/                # Claude 完全拥有的 LLM 维护层
+wiki/                # Codex 完全拥有的 LLM 维护层
   index.md           # 全部页面的目录 —— 每次 ingest 都更新
   log.md             # 仅追加的时间线
   overview.md        # 跨源综述（活文档）
@@ -84,7 +95,7 @@ last_updated: 2026-05-04   # ISO 日期 YYYY-MM-DD
 **支持格式：** Markdown 直接读；其他格式（`.pdf .docx .pptx .xlsx .html .txt .csv .json .xml .rst .rtf .epub .ipynb .yaml .yml .tsv .wav .mp3`）走 [markitdown](https://github.com/microsoft/markitdown) 自动转 markdown 后再 ingest。YouTube 链接交给 `tools/youtube2md.py`。加 `--no-convert` 跳过转换。
 
 **执行步骤（按序）：**
-1. 用 Read 工具完整读取源文件（非 markdown 先转换）
+1. 用 Codex 可用的文件读取工具完整读取源文件（非 markdown 先转换）
 2. 读 `wiki/index.md` 与 `wiki/overview.md` 了解当前 wiki 上下文
 3. 写 `wiki/sources/<slug>.md`（按下方"源页面模板"）
 4. 更新 `wiki/index.md`：在 `## 源` 区段加新条目
@@ -183,7 +194,7 @@ source_file: raw/papers/xxxx.pdf
 
 **步骤：**
 1. 读 `wiki/index.md` 锁定相关页面
-2. 用 Read 工具读这些页（≤ 10 个最相关）
+2. 用 Codex 可用的文件读取工具读这些页（≤ 10 个最相关）
 3. 综合一段中文回答，**所有引用都用 `[[页面名]]` 行内 wikilink**
 4. 末尾加 `## 引用源` 列表
 5. 询问用户是否将本回答归档为 `wiki/syntheses/<slug>.md`
@@ -196,7 +207,7 @@ source_file: raw/papers/xxxx.pdf
 
 触发：`/wiki-lint` 或 *"检查 wiki 健康"*
 
-**结构性检查（用 Grep / Glob）：**
+**结构性检查（优先用 `rg` / 文件枚举工具）：**
 1. **孤立页** —— 没有任何其他页通过 `[[link]]` 链入
 2. **死链** —— `[[wikilink]]` 指向不存在的页
 3. **缺失实体页** —— 在 ≥ 3 个页面被提到但还没有专属页
@@ -250,7 +261,7 @@ source_file: raw/papers/xxxx.pdf
 - 输出 `graph/graph.json` + `graph/graph.html`（vis.js 可交互）
 
 **如果用户没装 Python 环境**，手工生成兜底：
-1. Grep 出 wiki/ 下所有 `[[wikilinks]]`
+1. 搜索出 wiki/ 下所有 `[[wikilinks]]`
 2. 构造 nodes（每页一个，id=相对路径，label=title，type 来自 frontmatter）
 3. 构造 edges（每个 wikilink 一条，标 EXTRACTED）
 4. 写 `graph/graph.json`（含 `{nodes, edges, built: today}`）
@@ -276,7 +287,7 @@ source_file: raw/papers/xxxx.pdf
 ```markdown
 # Wiki 目录
 
-*由 Claude Code 在每次 ingest 时维护，请勿手工编辑。*
+*由 Codex 在每次 ingest 时维护，请勿手工编辑。*
 
 ## 综述
 - [Overview](overview.md) —— 跨源活文档
