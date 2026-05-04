@@ -12,25 +12,25 @@ AGENTS.md   Codex 使用的 schema、命名规范和工作流约定
 
 Obsidian 负责浏览、搜索和图谱视图；Codex 负责摄入、查询、体检和图谱生成。正文和 prompt 默认中文，frontmatter 字段名保留英文以兼容 Dataview 与上游工具。`CLAUDE.md` 与 `GEMINI.md` 作为其他 agent CLI 的兼容入口保留。
 
-## 快速命令
+## Codex 触发方式
 
-| 命令 | 用途 |
+Codex 里优先用自然语言触发 wiki 工作流；下面的 slash 写法只是兼容触发词，不代表 Codex 一定有内置 slash command UI。
+
+| 你可以这样说 | 等价触发词 | 用途 |
 |---|---|
-| `/wiki-health` | 结构性体检，0 LLM 调用 |
-| `/wiki-ingest raw/articles/example.md` | 摄入一份源文档 |
-| `/wiki-query RAG 和持久化 wiki 有什么区别？` | 从已有 wiki 综合回答 |
-| `/wiki-lint` | 语义体检：死链、孤立页、矛盾、缺口 |
-| `/wiki-graph` | 重建 `graph/graph.json` 与交互图谱 |
-
-自然语言也可以触发同样流程，例如“帮我把 `raw/papers/transformer.pdf` 收进来”。
+| “健康检查” | `/wiki-health` | 结构性体检，0 LLM 调用 |
+| “帮我把 `raw/articles/example.md` 收进来” | `/wiki-ingest raw/articles/example.md` | 摄入一份源文档 |
+| “wiki 里关于 RAG 怎么说？” | `/wiki-query RAG` | 从已有 wiki 综合回答 |
+| “检查 wiki 有没有孤立页或矛盾” | `/wiki-lint` | 语义体检：死链、孤立页、矛盾、缺口 |
+| “重建图谱” | `/wiki-graph` | 重建 `graph/graph.json` 与交互图谱 |
 
 ## 日常工作流
 
 1. 把不可变源放到 `raw/` 下对应目录。
-2. 在 Codex 里运行 `/wiki-health` 或直接说“健康检查”做预检。
-3. 运行 `/wiki-ingest raw/...` 生成 source 页，并更新 index、overview、entity、concept 和 log。
-4. 用 `/wiki-query ...` 综合已有内容；值得保留的回答归档到 `wiki/syntheses/`。
-5. 每摄入 10-15 个源后运行 `/wiki-lint`，需要图谱时运行 `/wiki-graph`。
+2. 在 Codex 里说“健康检查”做预检。
+3. 说“帮我把 `raw/...` 收进来”，生成 source 页，并更新 index、overview、entity、concept 和 log。
+4. 说“wiki 里关于……怎么说？”，综合已有内容；值得保留的回答归档到 `wiki/syntheses/`。
+5. 每摄入 10-15 个源后说“检查 wiki 有没有孤立页或矛盾”，需要图谱时说“重建图谱”。
 
 ## Python 环境
 
