@@ -6,6 +6,9 @@
 .obsidian/plugins/*/data.json
 .trash/
 
+# Agent/CLI 本地状态
+.claude/settings.local.json
+
 # 自动生成的图谱产物
 graph/*.json
 graph/*.html
