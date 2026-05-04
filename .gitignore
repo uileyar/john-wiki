@@ -1,0 +1,35 @@
+# Obsidian 本地状态（不应进 git）
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/workspaces.json
+.obsidian/cache
+.obsidian/plugins/*/data.json
+.trash/
+
+# 自动生成的图谱产物
+graph/*.json
+graph/*.html
+graph/*.gexf
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.env
+.pytest_cache/
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# wiki 临时报告（按需保留）
+wiki/lint-report.md
+wiki/health-report.md
